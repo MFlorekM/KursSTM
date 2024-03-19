@@ -44,7 +44,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t znak, komunikat[20];
+uint16_t dl_kom;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,6 +89,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_UART_Receive_IT(&huart2, &znak, 1);
 
   /* USER CODE END 2 */
 
@@ -160,6 +162,34 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 	}
 }
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART2)
+	{
+		if(znak == 'e')
+		{
+			HAL_GPIO_WritePin(LD2_GPIO_Port,LD2_Pin, GPIO_PIN_SET);
+			sprintf(komunikat, "Dioda ON");
+			dl_kom = 8;
+		}
+		else if(znak == 'd')
+		{
+			HAL_GPIO_WritePin(LD2_GPIO_Port,LD2_Pin, GPIO_PIN_RESET);
+			sprintf(komunikat, "Dioda OFF");
+			dl_kom = 9;
+		}
+		else
+		{
+			sprintf(komunikat, "Zly znak");
+			dl_kom = 8;
+		}
+		HAL_UART_Transmit_IT(&huart2, komunikat, dl_kom);
+		HAL_UART_Receive_IT(&huart2, &znak, 1);
+	}
+}
+
+
 /* USER CODE END 4 */
 
 /**
